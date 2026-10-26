@@ -18,7 +18,7 @@ Use complete, natural English that communicates the actual content or action. Fu
 
 Use lower_snake_case for ordinary folders and data files, lowerCamelCase for MATLAB function and package names, and UPPER_SNAKE_CASE.md for maintained documentation. Use `documentation`, not an abbreviated folder name. Keep required names such as main.m, README.md, AGENTS.md, MATLAB file extensions, and the package `+` marker. Standard engineering units and established saved-data fields retain their documented meanings. Explain technical terms in prose when needed.
 
-The user-named outer project directory and historical records retain their names. New maintained filenames and folder names use complete words. Avoid ambiguous revision suffixes such as final2 and new. Git tracks the project in the private Acstc9/analog-to-digital-converter-design repository. Reference PDFs and routine generated results remain local; the default implementation 3.0.2 run is explicitly included as a reproducible baseline.
+The user-named outer project directory and historical records retain their names. New maintained filenames and folder names use complete words. Avoid ambiguous revision suffixes such as final2 and new. Git tracks the project in the public Acstc9/analog-to-digital-converter-design repository. Reference PDFs and routine generated results remain local; the default implementation 3.0.2 run is explicitly included as a reproducible baseline.
 
 ## Naming migration on 2026-10-25
 
