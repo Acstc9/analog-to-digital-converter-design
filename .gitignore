@@ -1,0 +1,9 @@
+modeling/matlab/results/*
+!modeling/matlab/results/README.md
+!modeling/matlab/results/coherent_sine_wave/
+modeling/matlab/results/coherent_sine_wave/*
+!modeling/matlab/results/coherent_sine_wave/run_20261026_000733_tpbee5f8eb_f899_48ab_9fab_569a104d4ee2/
+references/**/*.pdf
+*.asv
+*.m~
+.DS_Store

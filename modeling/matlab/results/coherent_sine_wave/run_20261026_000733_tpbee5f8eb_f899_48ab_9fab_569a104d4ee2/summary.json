@@ -1,0 +1,178 @@
+{
+  "configuration": {
+    "schemaVersion": 3,
+    "converter": {
+      "resolutionBits": 12,
+      "minimumInputVolts": 0,
+      "maximumInputVolts": 1,
+      "unitCapacitanceFarads": 1E-14,
+      "samplingTopPlateVoltageVolts": 0,
+      "comparatorReferenceShiftVolts": 0.0001220703125
+    },
+    "sampling": {
+      "sampleRateHz": 1.0E+6,
+      "acquisitionDurationSeconds": 2E-7,
+      "bitDecisionDurationSeconds": 2.5E-8
+    },
+    "stimulus": {
+      "sampleCount": 16384,
+      "coherentCycleCount": 997,
+      "amplitudeDbfs": -1
+    },
+    "analysis": {
+      "maximumHarmonicOrder": 6
+    }
+  },
+  "analysisReference": "Analog Devices, Testing Data Converters, section 5.2; Figure 5.29, Equation 5.23, Figures 5.65-5.68",
+  "analysisSettings": {
+    "windowName": "Rectangular",
+    "frequencyBinWidthHz": 61.03515625,
+    "equivalentNoiseBandwidthHz": 61.03515625,
+    "analysisBandLimitsHz": [
+      0,
+      500000
+    ],
+    "excludedDirectCurrent": true,
+    "minimumHarmonicOrder": 2,
+    "maximumHarmonicOrder": 6,
+    "spectralReference": "Full-scale sine mean-square power"
+  },
+  "metadata": {
+    "createdAt": "2026-10-26T00:07:32Z",
+    "matlabVersion": "26.1.0.3312084 (R2026a) Update 4",
+    "implementationVersion": "3.0.2",
+    "circuitReference": "Analog Devices, Understanding SAR ADCs: Their Architecture and Comparison with Other ADCs, Figure 3; explicit ideal comparator-reference bias added by project choice",
+    "analysisReference": "Analog Devices, Testing Data Converters, section 5.2; Figure 5.29, Equation 5.23, Figures 5.65-5.68",
+    "sourceSnapshot": {
+      "directory": "source_snapshot",
+      "files": [
+        {
+          "path": "+converterModel/calculateTopPlateVoltage.m",
+          "sha256": "f36c96b972908de20417e937ffd05a13ffdfe0ea098d69acb58109159e11bec8"
+        },
+        {
+          "path": "+converterModel/compareComparatorInputs.m",
+          "sha256": "0898e37c7cfc05acfcbc11234a7834bd0b2f9c69fa3aef508b63cbd888ea98a5"
+        },
+        {
+          "path": "+converterModel/convertSampledChargeToCode.m",
+          "sha256": "916c964a6116426661217417af42b23d1d80fa0cc6559a810252746431d42857"
+        },
+        {
+          "path": "+converterModel/createCapacitorArray.m",
+          "sha256": "92915a15bc83489723e712e1bf5e252cb97bc96111120682bc239de9a47d37b0"
+        },
+        {
+          "path": "+converterModel/sampleCapacitorArray.m",
+          "sha256": "3e15b1fbbed71166ffac7330f18a95b32b90509a8a2d17205a4c81c1fe4c7199"
+        },
+        {
+          "path": "+converterModel/simulateConverter.m",
+          "sha256": "9c240075f56efe6d637a7ad403d830779fabd2aa977c56ef30c278e58f161467"
+        },
+        {
+          "path": "+converterModel/validateConverterParameters.m",
+          "sha256": "1590423eae8cf11c77ba5674af41c42500d91391d8d32c3526cfb8c1f63f55e7"
+        },
+        {
+          "path": "testing/runCoherentSineWaveTest.m",
+          "sha256": "325c9671749523cabf91f363eba3873d29b8c6965e7944273165e5c17ec88efc"
+        },
+        {
+          "path": "testing/+inputSignals/generateCoherentContinuousSineWave.m",
+          "sha256": "c49885cda29708db8f98f11771f2223f9c4df4e6a588d20a49e432b21fbcdaa1"
+        },
+        {
+          "path": "testing/+parameters/createDefaultConfiguration.m",
+          "sha256": "d2ceb9b102b37adf19742d87068764c8c3adacf68c7635698a041c68e178dd0b"
+        },
+        {
+          "path": "testing/+parameters/validateConfiguration.m",
+          "sha256": "04edd66a74e2b0abfafa77f7bb94f3d4d6bfbfd555e101b54cbb996343f7c1d9"
+        },
+        {
+          "path": "testing/+reporting/displayPerformanceMetrics.m",
+          "sha256": "ce35d6a8ef659823a870f6bb72670cfc8cd035e8985eef16e368114f59cf202e"
+        },
+        {
+          "path": "testing/+reporting/plotFrequencySpectrum.m",
+          "sha256": "3f035819a81cbc6f91eb461bc674a9fbafb28690221baf96e9dea9fba3fa40f1"
+        },
+        {
+          "path": "testing/+reporting/saveSimulationResults.m",
+          "sha256": "f7a29da2c3f6f5d73fc1039b5b007954cead2f6d6a3f1a34608012fd2233db6c"
+        },
+        {
+          "path": "testing/+reporting/saveSourceSnapshot.m",
+          "sha256": "b7e58c173beb1f0c3ff4b3731c0bc2e061457bba1ce7e0625398ad469ce687b4"
+        },
+        {
+          "path": "testing/+spectrumAnalysis/analyzeCoherentSpectrum.m",
+          "sha256": "b314b691a88fffb28035958ba44a6944b4e1244ee7769316c0e185dcd45686d9"
+        },
+        {
+          "path": "main.m",
+          "sha256": "b70343ea8a96e0ccc78695946c36a546b54e1f91722594d98c1eb987ef499062"
+        },
+        {
+          "path": "documentation/MODEL_DEFINITIONS.md",
+          "sha256": "f7db8a07fc41eb5b340e06670b78e304d27be0e87b818eab2f12c96e68a87702"
+        }
+      ]
+    }
+  },
+  "metrics": {
+    "snrDb": 73.0436536232789,
+    "thdDb": -102.84727439556559,
+    "sinadDb": 73.039112166958958,
+    "sfdrDb": 96.876367224059379,
+    "enobUncorrectedBits": 11.840384080890193,
+    "fundamentalDbfs": -1.0000119707316837,
+    "enobBits": 12.006499026194458,
+    "snrFullScaleDb": 74.043665594010577,
+    "worstNonharmonicSpurDbc": -96.876367224059379,
+    "noiseFloorDbfsPerBin": -113.17438299710309,
+    "idealQuantizationSnrDb": 73
+  },
+  "metricNonfiniteStatus": {},
+  "integratedPowerVoltsSquared": {
+    "fundamental": 0.099290755658809474,
+    "noise": 4.9265563385233E-9,
+    "distortion": 5.1544386680127654E-12,
+    "fullScaleSine": 0.125
+  },
+  "harmonics": [
+    {
+      "Order": 2,
+      "BinIndexZeroBased": 1994,
+      "LevelDbc": null,
+      "LevelDbcStatus": "-Inf"
+    },
+    {
+      "Order": 3,
+      "BinIndexZeroBased": 2991,
+      "LevelDbc": -102.89769690311238,
+      "LevelDbcStatus": "finite"
+    },
+    {
+      "Order": 4,
+      "BinIndexZeroBased": 3988,
+      "LevelDbc": null,
+      "LevelDbcStatus": "-Inf"
+    },
+    {
+      "Order": 5,
+      "BinIndexZeroBased": 4985,
+      "LevelDbc": -122.22405997356306,
+      "LevelDbcStatus": "finite"
+    },
+    {
+      "Order": 6,
+      "BinIndexZeroBased": 5982,
+      "LevelDbc": null,
+      "LevelDbcStatus": "-Inf"
+    }
+  ],
+  "status": "complete",
+  "exportFormatVersion": 3
+}

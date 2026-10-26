@@ -1,0 +1,33 @@
+function validateConfiguration(configuration)
+assert(isstruct(configuration) && isscalar(configuration) && isfield(configuration,'schemaVersion'), ...
+    'parameters:UnsupportedConfigurationSchema', 'Configuration must declare schemaVersion 3. Create a current configuration with parameters.createDefaultConfiguration.');
+schemaVersion = configuration.schemaVersion;
+assert(isnumeric(schemaVersion) && isscalar(schemaVersion) && isreal(schemaVersion) ...
+    && isfinite(schemaVersion) && schemaVersion==fix(schemaVersion) && schemaVersion==3, ...
+    'parameters:UnsupportedConfigurationSchema', 'Only configuration schemaVersion 3 is supported. Review historical settings before migrating them.');
+converterModel.validateConverterParameters(configuration.converter);
+validateattributes(configuration.sampling.sampleRateHz, {'double'}, {'scalar','real','finite','positive'});
+assert(all(isfield(configuration.sampling,{'acquisitionDurationSeconds','bitDecisionDurationSeconds'})), ...
+    'parameters:MissingTimingParameters', 'Create a current default configuration and copy the desired settings; older configurations do not define converter timing.');
+validateattributes(configuration.sampling.acquisitionDurationSeconds, {'double'}, {'scalar','real','finite','positive'});
+validateattributes(configuration.sampling.bitDecisionDurationSeconds, {'double'}, {'scalar','real','finite','positive'});
+assert(configuration.converter.resolutionBits*configuration.sampling.bitDecisionDurationSeconds ...
+    <= 1/configuration.sampling.sampleRateHz-configuration.sampling.acquisitionDurationSeconds, ...
+    'parameters:InsufficientCycleTime', 'Acquisition and all bit decisions must fit within one sampling period.');
+validateattributes(configuration.stimulus.sampleCount, {'double'}, {'scalar','integer','>=',32});
+validateattributes(configuration.stimulus.coherentCycleCount, {'double'}, {'scalar','integer','positive','<',configuration.stimulus.sampleCount/2});
+validateattributes(configuration.stimulus.amplitudeDbfs, {'double'}, {'scalar','real','finite','<=',0});
+validateattributes(configuration.analysis.maximumHarmonicOrder, {'double'}, {'scalar','integer','>=',2,'<',configuration.stimulus.sampleCount/2});
+assert(2^round(log2(configuration.stimulus.sampleCount))==configuration.stimulus.sampleCount, ...
+    'parameters:PowerOfTwoRecordRequired', 'This experiment''s selected Analog Devices coherent profile requires a power-of-two record length.');
+assert(isprime(configuration.stimulus.coherentCycleCount) && configuration.stimulus.coherentCycleCount>2, ...
+    'parameters:PrimeCycleCountRequired', 'Use an odd prime cycle count, as recommended in Analog Devices Figure 5.66.');
+assert(gcd(configuration.stimulus.sampleCount,configuration.stimulus.coherentCycleCount)==1, ...
+    'parameters:NonCoprimeRecord', 'Cycle count and record length must be coprime.');
+harmonicOrders = (2:configuration.analysis.maximumHarmonicOrder)';
+wrappedBins = mod(harmonicOrders*configuration.stimulus.coherentCycleCount,configuration.stimulus.sampleCount);
+foldedBins = min(wrappedBins,configuration.stimulus.sampleCount-wrappedBins);
+assert(~any(ismember(foldedBins,[0; configuration.stimulus.coherentCycleCount])) && numel(unique(foldedBins))==numel(foldedBins), ...
+    'parameters:HarmonicCollision', 'Choose a longer record or fewer harmonics to avoid overlapping spectral components.');
+end
+
