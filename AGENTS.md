@@ -1,37 +1,47 @@
-# Converter Project: Instructions for Future Assistance
+# Converter Project: Assistant Instructions
 
-Read README.md, documentation/PROJECT_STRUCTURE.md, and documentation/ANALOG_DEVICES_REFERENCE_ALIGNMENT.md first. Before MATLAB changes, read modeling/matlab/documentation/MODEL_DEFINITIONS.md, CODE_STRUCTURE.md, and VERIFIED_SIMULATION_RESULTS.md.
+Read README.md, coding-style/matlab-coding-style.md and literature/README.md first. Before MATLAB changes, read both notebooks in documentation and inspect the actual current source. This is the completed instructor-guided working project; old sibling-directory instructions are historical.
 
 ## User preferences
 
-- All project-authored files use English, including documentation, comments, labels, and messages. Conversation may remain in Chinese. Teach in small steps and link the exact current files being discussed. Explain the folder structure and call chain before entering algorithms.
-- Use natural, explicit English to describe actual content or actions. Avoid abbreviations in new maintained file and folder names. Functions create configuration, generate signals, validate parameters, convert samples, analyze spectra, plot data, or save results. Folder names describe content categories. Do not add a generic test prefix everywhere. Standard software names, required filenames, file extensions, engineering units, and established saved-data fields retain their documented meanings.
-- The naming migration was authorized and implemented on 2026-10-25. The converter lives in modeling/matlab/+converterModel; performance-test tools live in modeling/matlab/testing. Follow the current structure instead of restoring src/+adc or experiments. The leading + is MATLAB's package marker. Add package parent directories to the path.
-- Maintain two notebooks in modeling/matlab/documentation: DEVICE_MODELING_NOTES.md and CONVERTER_TESTING_NOTES.md. The device note remains title-only; the testing note contains the existing sampling rationale. Do not add new lessons until requested.
-- The root is the entire converter design project. Keep modeling, references, design, and measurements separate.
-- The user opens modeling/matlab/main.m, edits parameters, and clicks Run. Do not introduce startup scripts, a separate self-test runner, or a permanent automated test suite without a request. The testing directory contains the actual converter performance test and runs automatically from main. Runtime input validation remains intentional.
+- All project-authored text is English. Conversation may be Chinese. Teach in small batches, identify the call chain, and link exact current file lines.
+- Prefer simple physical steps, descriptive names and minimal changes. Avoid dense nested expressions and unnecessary aliases. Do not introduce speculative extension points, safeguards or frameworks.
+- Keep parameters in sim-config/createSimulationConfiguration.m. Run the entire testbench/simConventionalSarADC.m after changing them. Do not restore main.m, startup scripts, validators or a separate software-test runner without a request.
+- The user deliberately removed validation assertions, harmonic folding, runtime version metadata, analysisSettings, file export and source snapshots. Do not restore them merely because older documentation mentions them.
+- No automatic result saving, archives per run or console report. The current run stays in the MATLAB workspace and opens a figure.
+- Preserve original instructor attachments, references, measured data and the retained empty codeDensityTest.m and drawing template. Do not implement placeholders without a request. Do not add new notebook lessons unless requested.
 
-- Preserve Coherent in the continuous-source generator name. simulateConverter creates the capacitor array once and owns the chronological device loop: sample charge, complete its successive conversion, then sample again. sampleCapacitorArray captures input charge; convertSampledChargeToCode switches capacitor bottom plates and compares the resulting floating-node voltage. The performance-test runner does not schedule individual device events.
-- Prefer minimal implementation changes. The user specifically requested no elaborate new validation or verification machinery for this separation. Use a normal simulation run and small focused checks as needed; do not add a verification framework.
+## Model boundaries
 
-## Model and measurement conventions
+- models/cbwSarADC.m creates one capacitor array and owns both the chronological sample-convert-store loop and MSB-to-LSB control loop. It returns only a double column vector of integer-valued digital codes. Do not restore analog diagnostic outputs or a separate runSARConversion layer.
+- Four component functions serve the model: synthesizeBinaryCDAC, sampleInputOntoCDAC, calculateTopPlateVoltage and compareVoltages. The voltage solver expresses CDAC physics, not an additional physical device. Switching remains directly in the model.
+- generateCoherentContinuousSineWave returns a function of time; preserve Coherent in its name. Sample once, complete that conversion, then take the next sample. Do not precompute all inputs before conversion.
+- samplingResult contains the sample time, input voltage and captured total top-node charge. The model adds bottom-plate connections and computed top-plate voltage. Reference switching and post-switch voltage solving do not belong in the sampler.
+- Use nominal binary-weighted capacitors plus one unit dummy, with capacitances in fF, charge in fC and volts unchanged. Do not add actual-capacitance duplicates or nonideality hooks yet.
+- Sample with the top plate clamped to 0 V and all bottoms at the input. Release the top clamp; switch bottoms low, then perform successive trials. Conserve total top-node charge, not individual branch charge. The dummy stays low during conversion.
+- Keep the explicit half-LSB comparator-reference bias and direct two-input >= comparison. Do not restore the removed numerical tolerance, rounding or explicit state machine. Floating-point arithmetic remains approximate.
+- Use referenceLowVolts/referenceHighVolts, not supply-rail names. Keep n/Fs sample times; no acquisition or bit-decision durations are currently modeled.
+- Retain the instructor's cbwSarADC identifier; the source does not define the expansion of CBW.
 
-Use the supplied Analog Devices chapter as the controlling methodological reference where applicable. Cite printed page, file page, and figure/equation in documentation. Distinguish recommendations, examples, project choices, and unimplemented capabilities. Do not claim full manual compliance.
+## Analysis and display
 
-The model remains ideal until nonidealities are requested. Use the selected single-ended, binary-weighted charge-redistribution array with a unit dummy capacitor. Ideal unit capacitors match; weighted branches represent parallel groups of units. Create actual capacitances once per simulated device, initially equal to nominal values. Preserve total charge on the floating top-plate node, not each individual capacitor charge. Conversion must switch bottom plates and perform successive decisions from the most significant bit to the least significant bit. An explicit ideal comparator-reference voltage source above the sampling top-plate clamp by comparatorReferenceShiftVolts implements the selected half-LSB transfer convention; its default is nominal LSB/2. It is an intentional circuit assumption, not a random comparator offset or an automatic subtraction from calculated DAC voltage. Accept equality. Nominal reconstruction is Vmin + code*LSB and stays independent of physical capacitor values. Do not add mismatch or transistor-level effects before requested.
+- processAdcData converts codes to nominal volts, subtracts the mean, computes fft/N and forms a single-sided power spectrum by doubling interior bins only.
+- The current coherent profile uses a power-of-two record and an odd prime cycle count. Defaults are 16384 samples, 997 cycles, -1 dBFS and harmonic orders 2-6. Document the assumption maximumHarmonicOrder * coherentCycleCount < sampleCount / 2; do not add alias folding, while loops or replacement validation.
+- Preserve the full-scale sine power reference, noise and spur masks, totalPowerVoltsSquared, and zero-based FrequencyBin table values. MATLAB indices add 1.
+- Keep amplitude-corrected enobBits and separate enobUncorrectedBits. Zero power gives -Inf dBFS; no realmin or artificial floor.
+- plotFrequencySpectrum has no returned handle. Keep classic-blue stems [0, 0.447, 0.741], width 0.5, no markers, Frequency (kHz), Power (dBFS), a short title, grid and the five-metric Performance panel. Keep display limits [-160, 5] dBFS and x limits from Fs/2. No harmonic annotations, legend, analysis panel or plotting framework.
 
-The selected coherent profile uses a power-of-two record and an odd prime cycle count, without an additional window. Defaults remain 16384 samples, 997 cycles, and harmonics 2-6. enobBits includes the below-full-scale correction; enobUncorrectedBits is separate. Preserve alias folding and the documented noise/distortion masks. One-cycle and non-power-of-two records can be mathematically coherent even though this profile rejects them. Read CONVERTER_TESTING_NOTES.md before explaining these choices.
+## Coding and verification
 
-The FFT reference review led to a minimal reporting update only. Preserve the existing normalization and full-scale sine power reference. Report power per bin in dBFS, analysis conditions, component markers and explicitly amplitude-corrected ENOB. analysisSettings records the rectangular window, bin width, equivalent noise bandwidth, analysis band, DC exclusion, harmonic range and spectral reference. Toolbox adoption/comparison, an additional time-domain plot and future analysis extensions are deferred unless requested.
+- Follow the maintained coding style: two-space indentation, spaced parentheses/operators, camelCase and clear structure-based configuration. Prefer names to excessive comments and avoid ellipsis continuations in ordinary calculations.
+- Manually inspect every changed numeric result-buffer initializer. Pending results, including outputCodes, must start with NaN in double storage. Only the explicitly cleared SAR register starts at uint32(0). Known connection voltages and completed logical masks are not pending results.
+- Do not hide missing data by integer-casting, replacing or omitting NaNs. Code Analyzer alone does not verify this rule.
+- Avoid global, genpath, savepath and clear all. Converter functions have no file or plot side effects and do not depend on the testbench or FFT.
+- Verify substantive changes with one normal MATLAB run and small focused checks; use temporary scripts, not a permanent test suite. MATLAB is installed at /Applications/MATLAB_R2026a.app/bin/matlab. Record evidence and limitations in README.md. No subagent delegation is required.
 
-## Implementation and preservation
+## Preservation and publication
 
-Use descriptive variable names with units. Current schemaVersion is 3, implementationVersion is 3.0.2, and exportFormatVersion is 3. Implementation 3.0.1 adds reporting annotations and analysisSettings metadata without changing numerical definitions. Implementation 3.0.2 allows amplitudeDbfs <= 0, retains the -1 dBFS default, and displays configured amplitude and analytic sine bounds. Run all of main.m after parameter changes so derived settings are recalculated. Exact Vmax still converts to the maximum code and sets the existing half-open-range overrangeMask; FFT retains that sample. Schema 3 records the physical capacitor-array and explicit comparator-reference assumptions; the default ideal transfer remains the previous half-LSB convention. Preserve existing sampled-input, code, and spectrum field meanings. Document future version changes. Older configurations require deliberate migration of capacitance, clamp, bias, and timing values; when changing resolution or reference span programmatically, recompute comparatorReferenceShiftVolts if retaining the half-LSB convention. Explicit acquisition and bit-decision durations are project timing assumptions, not ADI requirements. Preserve sample times n/Fs and use Fs for FFT analysis, not the internal bit rate. Older saved configurations lack these timing fields; replay their snapshots or deliberately supply the new timing settings.
-
-Converter functions have no file or plot side effects and do not depend on testing tools. Reuse reporting.plotFrequencySpectrum for display and export. Keep configuration creation separate from validation. Avoid genpath, savepath, global variables, and clear all.
-
-Preserve historical runs and their snapshots byte-for-byte. The reference manual may have a descriptive filename, but its content and checksum must remain intact. Do not rewrite historical data to match current naming. Old paths can be resolved using the migration tables. Preserve staged export completion, explicit nonfinite JSON statuses, and source snapshots with checksums. Snapshot capture reads the disk; do not edit source while a run is active.
-
-## Verification
-
-MATLAB is installed at /Applications/MATLAB_R2026a.app/bin/matlab. Run main from modeling/matlab. If sandbox startup reports NEON errors, use the supported normal-permission execution path. Verify substantive changes with actual execution, focused numerical checks, and Code Analyzer. Record evidence and limits in VERIFIED_SIMULATION_RESULTS.md; use temporary verification scripts rather than adding a permanent suite. No subagent delegation is required.
+- Maintain the two notebooks in documentation. Keep the coherent-sampling rationale and update its code links when paths change.
+- The ADI testing chapter controls applicable methodology; distinguish its recommendations from project assumptions and unimplemented capabilities. Do not claim full manual compliance.
+- Original books and instructor files are local-only under literature/source-documents/references. One-time migration archives and their integrity manifest are under literature/source-documents/project-history. Do not upload these or silently discard them.
+- The remote remains Acstc9/analog-to-digital-converter-design, and the formal local folder remains ADC OCT 2026 version. Preserve Git history; do not reinitialize or force-replace it. The temporary adc-instructor-guided directory is retired by the final transition.
