@@ -1,8 +1,12 @@
 # Converter Testing Notes
 
-## Sampling Parameter Rationale
+## FFT record length and processing gain
 
-Recorded: 2026-10-25. Integrated into the instructor-guided project on 2026-11-01; paths and the current below-Nyquist harmonic scope have been updated.
+The default 12-bit test uses 1024 samples. At 1 MS/s the bin spacing is 976.5625 Hz. For approximately uniform noise, the FFT processing gain is 10 log10(1024/2), or 27.1 dB. For a fixed total noise power, a longer record spreads that power over more bins and lowers the average power per bin. Converter resolution sets the number of output codes. The FFT length sets the spacing of frequencies in the spectrum. See [ADI MT-003, page 1](https://www.analog.com/media/en/training-seminars/tutorials/MT-003.pdf).
+
+The ADI analyzer example uses 16384 points, corresponding to 39.1 dB of processing gain. At 1 MS/s, 997 cycles in that record give a tone near 60.85 kHz. With 1024 points, 61 is the closest odd prime to the 62.3125 cycles that would preserve that frequency. The selected record samples all 1024 phases and places the tone at 59.5703125 kHz.
+
+## Sampling Parameter Rationale
 
 This note preserves the reasoning behind the sampling parameters in createSimulationConfiguration.m. Read it in order when revisiting coherent sampling. Intuition comes first; compact equations are collected near the end. This is a design rationale, not an additional execution step.
 
@@ -13,7 +17,7 @@ An input sine wave can continue indefinitely, but one FFT receives a finite list
 - sampleRateHz: how many samples are taken per second.
 - sampleCount: how many samples are included in this record.
 
-For example, 100 samples at 1000 samples per second represent a 0.1-second record. The current 16384 samples at 1000000 samples per second represent 0.016384 seconds, or 16.384 ms.
+For example, 100 samples at 1000 samples per second represent a 0.1-second record. The current 1024 samples at 1000000 samples per second represent 0.001024 seconds, or 1.024 ms.
 
 The record period includes the interval from the last sample to the start of the next record. The elapsed time from sample 0 to sample M-1 is one sampling interval shorter. Do not confuse these two durations.
 
@@ -35,9 +39,9 @@ The requirement is that the next theoretical sample, x[M], reconnects to x[0] wi
 
 A record containing an integer number of input cycles satisfies the coherent condition. With a fixed record duration, select an integer cycle count and calculate the required frequency.
 
-For example, fitting three cycles into 0.1 seconds requires 30 cycles per second, or 30 Hz. The current experiment fits 997 cycles into 0.016384 seconds, requiring 60852.05078125 Hz.
+For example, fitting three cycles into 0.1 seconds requires 30 cycles per second, or 30 Hz. The current experiment fits 61 cycles into 0.001024 seconds, requiring 59570.3125 Hz.
 
-This is why createSimulationConfiguration.m specifies coherentCycleCount rather than an independent arbitrary input frequency. In the frequency-domain description, the tone lands on an exact FFT bin. The current fundamental is at zero-based bin 997.
+This is why createSimulationConfiguration.m specifies coherentCycleCount rather than an independent arbitrary input frequency. In the frequency-domain description, the tone lands on an exact FFT bin. The current fundamental is at zero-based bin 61.
 
 Coherent sampling avoids the leakage caused by an off-bin ideal tone. It does not remove quantization error, harmonic distortion, or physical noise. Noncoherent testing is also possible, but requires a different treatment of windows and leakage than the current single-bin analyzer.
 
@@ -85,7 +89,7 @@ Ideal quantization error is determined by the input sample; it is not an indepen
 
 Avoiding short phase repetition prevents this particular sampling artifact. It does not guarantee independent white quantization noise. The ideal converter remains deterministic, and finite-record metrics can differ slightly from theoretical noise approximations.
 
-An analog sine repeats each cycle, but its sampled values need not repeat each cycle. If one cycle spans a noninteger number of sampling intervals, the sampling instants occur at different positions on successive cycles. The model evaluates the sine at each sample time; it does not generate one digital cycle and copy it 997 times.
+An analog sine repeats each cycle, but its sampled values need not repeat each cycle. If one cycle spans a noninteger number of sampling intervals, the sampling instants occur at different positions on successive cycles. The generator evaluates the sine at all 1024 sample indices in one call. The converter then reads the samples in order.
 
 ### 7. Why not use just one cycle?
 
@@ -95,8 +99,8 @@ Keeping the current sample rate and record length fixed:
 
 | Cycle count | Input frequency | Phase coverage before repetition |
 |---:|---:|---|
-| 1 | 61.03515625 Hz | Full 16384-position phase grid |
-| 997 | 60852.05078125 Hz | Full 16384-position phase grid, in a different order |
+| 1 | 976.5625 Hz | Full 1024-position phase grid |
+| 61 | 59570.3125 Hz | Full 1024-position phase grid, in a different order |
 
 More cycles are not automatically more accurate. These two choices test different input frequencies. For an ideal sine, normalized fundamental amplitude can be the same, but its FFT location differs. Quantized metrics need not be exactly identical. A future nonideal ADC may respond differently at the two frequencies because of bandwidth, settling, or jitter.
 
@@ -123,8 +127,8 @@ For example, 10000 samples and 997 cycles are coprime and coherent. At 1 MS/s, t
 | Setting | Current value | Actual rationale | What it does not establish |
 |---|---:|---|---|
 | sampleRateHz | 1000000 | Convenient initial simulation baseline; no target circuit speed was supplied. | Does not demonstrate that a physical ADC meets 1 MS/s timing. |
-| sampleCount | 16384 | Matches the ADI ADC Analyzer example default and is a conventional power-of-two FFT length. | Not the only coherent length and not an optimized requirement for every future experiment. |
-| coherentCycleCount | 997 | An odd prime coprime with 16384; places the input around 60.85 kHz. Harmonics 2-6 remain below the 500 kHz Nyquist limit, making the initial spectrum easier to inspect. | Not a unique or optimized frequency choice; more cycles do not inherently improve accuracy. |
+| sampleCount | 1024 | Covers the full Nyquist band in 976.5625 Hz bins with 27.1 dB processing gain for uniform noise. | Not the only coherent length and not an optimized requirement for every future experiment. |
+| coherentCycleCount | 61 | An odd prime coprime with 1024 that keeps the input near 60 kHz. | Not a unique or optimized frequency choice; more cycles do not inherently improve accuracy. |
 
 The physical repetition pattern is determined by the ratio of input frequency to sampling rate. In the current ideal model, keeping M and K fixed while changing Fs preserves the normalized sampled sine sequence, apart from numerical roundoff, and changes the time and frequency labels. There is no modeled speed-dependent circuit degradation yet.
 
@@ -144,7 +148,7 @@ Fundamental bin                k = K                 (zero-based)
 Phase repetition interval      L = M / gcd(M, K)      (sampling intervals)
 ```
 
-For the current baseline, T = 16.384 ms, delta_f = 61.03515625 Hz, Fin = 60.85205078125 kHz, and L = 16384 sampling intervals.
+For the current baseline, T = 1.024 ms, delta_f = 976.5625 Hz, Fin = 59.5703125 kHz, and L = 1024 sampling intervals.
 
 ### 11. Choosing a future experiment
 
@@ -152,19 +156,18 @@ For the current baseline, T = 16.384 ms, delta_f = 61.03515625 Hz, Fin = 60.8520
 2. Select the sampling rate and record length for that experiment.
 3. Estimate the cycle count from target frequency times record duration.
 4. Choose a nearby odd prime cycle count and use its exact resulting frequency. Use a power-of-two record for the selected profile.
-5. Keep every selected harmonic strictly below Nyquist: maximumHarmonicOrder * coherentCycleCount < sampleCount / 2. The current teaching-stage analyzer does not fold higher selected harmonics. This restriction is a project simplification, not a universal ADC-testing requirement. Higher-order unselected distortion may still alias and remains in the residual-noise bins.
+5. Keep the input tone strictly between DC and Nyquist. For SNDR, sum the power in every other non-DC bin. Harmonic distortion is included in this sum, even when it aliases. Individual harmonics are not located or reported.
 
 Changing M while keeping K and Fs fixed changes the input frequency as well as FFT spacing. A longer FFT can lower the power per noise bin without improving total noise or SNR. Do not interpret a lower plotted floor alone as better ADC performance.
 
 ### References and implementation locations
 
-- ADI Testing Data Converters, Figure 5.65, printed page 5.62 / PDF page 64: ADC Analyzer example settings, including the 16384-point default.
+- ADI Testing Data Converters, Figure 5.65, printed page 5.62 / PDF page 64: ADC Analyzer example settings, showing the 16384-point analyzer example.
 - ADI Equation 5.29 and Figure 5.66, printed pages 5.62-5.63 / PDF pages 64-65: coherent ratio, power-of-two record, and prime-cycle recommendation.
 - [Reference index and alignment](../literature/README.md): applicability, exceptions and source locations.
 - [Simulation configuration](../sim-config/createSimulationConfiguration.m): user-facing settings; assumptions are documented rather than enforced by a validator.
-- [Coherent sine stimulus](../function/generateCoherentContinuousSineWave.m): coherent frequency selection and continuous-time sine evaluation.
-- [Converter model](../models/cbwSarADC.m): sampling times and sequential conversion.
-- [CDAC sampling](../function/sampleInputOntoCDAC.m): captured input voltage and total top-node charge.
-- [FFT processing](../function/data-processing/processAdcData.m): normalization, harmonic selection and metric calculations.
-
-The original discussion is preserved in the local migration archive. This integration updates documentation to the current implementation without changing MATLAB calculations.
+- [Coherent sine stimulus](../function/generateCoherentSineSamples.m): coherent sine evaluated at uniformly spaced sample indices, with input level set by `p.amplitudeDbfs`.
+- [Converter model](../models/cbwSarADC.m): input samples, switch trials, CDAC voltage calculation and sequential conversion.
+- [Ideal DAC](../function/data-processing/idealDAC.m): MSB-first binary output rows decoded with Communications Toolbox bi2de and scaled to nominal volts.
+- [FFT processing](../function/data-processing/processAdcData.m): computes fft/N * 4/p.vRef and returns singleSidedTransform, plus SNDR and amplitude-corrected ENOB. This shared complex spectrum spans DC through Nyquist, with DC set to zero and the Nyquist entry divided by sqrt(2). A coherent full-scale sine below Nyquist has unit peak magnitude in this normalization. Both calculateSNR and the plotter consume this prepared spectrum. calculateSNR uses nsig = 0 for one coherent signal bin; distortion remains in the denominator, so the result is SNDR (also called SINAD). ENOB retains the correction (SNDR - 1.76 - measured fundamental dBFS) / 6.02; dbv measures that fundamental from the shared spectrum.
+- [Spectrum display](../function/plotting/plotFrequencySpectrum.m): uses the raw-spectrum approach in the toolbox examples: normalized FFT -> dbv -> MATLAB plotting. It reads singleSidedTransform( 2 : end ) to omit DC and draws each nonzero bin with stem on a linear kHz axis. Nyquist weighting is already included and is not repeated. The 512 positive-frequency bins for the default record are not averaged. Zero-power bins have -Inf dBFS and are omitted from the stems. Delta Sigma Toolbox plotSpectrum is not used because its logarithmic smoothing hides individual-bin detail. The converter and metric calculations are unchanged by presentation.

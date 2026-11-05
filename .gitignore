@@ -3,6 +3,9 @@
 *.asv
 *.m~
 
-# Generated results and separately supplied local study materials
+# Generated results and external reference materials
 /results/
 /literature/source-documents/
+
+# Local working instructions
+/AGENTS.md

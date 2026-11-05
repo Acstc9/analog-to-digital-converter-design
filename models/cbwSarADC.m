@@ -1,44 +1,27 @@
-function outputCodes = cbwSarADC( inputVoltageAtTime, simulationConfiguration )
+function binaryCodes = cbwSarADC( inputVoltageSamples, p )
   %% Build one device and prepare the sample record
-  capacitorArray = synthesizeBinaryCDAC( simulationConfiguration );
-  resolutionBits = simulationConfiguration.resolutionBits;
-  sampleCount = simulationConfiguration.sampleCount;
-  referenceLowVolts = simulationConfiguration.referenceLowVolts;
-  referenceHighVolts = simulationConfiguration.referenceHighVolts;
-  comparatorReferenceVolts = simulationConfiguration.comparatorReferenceShiftVolts;
-  outputCodes = nan( sampleCount, 1 );
+  capacitorWeights = synthesizeBinaryCDAC( p );
+  capacitorArray.nominalCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights;
+  capacitorArray.totalCapacitanceFemtofarads = sum( capacitorArray.nominalCapacitanceFemtofarads );
+  sampleCount = numel( inputVoltageSamples );
+  binaryCodes = nan( sampleCount, p.resolutionBits );
 
   for iSample = 1 : sampleCount
-    %% Capture the input sample and its stored charge
-    sampleTimeSeconds = ( iSample - 1 ) / simulationConfiguration.sampleRateHz;
-    samplingResult = sampleInputOntoCDAC( inputVoltageAtTime, sampleTimeSeconds, capacitorArray );
-
-    %% Begin conversion with the top plate floating and all bottom plates low
-    numberOfBranches = numel( capacitorArray.nominalCapacitanceFemtofarads );
-    bottomPlateVolts = repmat( referenceLowVolts, 1, numberOfBranches );
-    samplingResult.bottomPlateVolts = bottomPlateVolts;
-    topPlateVolts = calculateTopPlateVoltage( samplingResult, capacitorArray );
-    samplingResult.topPlateVolts = topPlateVolts;
-
-    outputCode = uint32( 0 );
+    %% Read one sample and clear the switches
+    inputVolts = inputVoltageSamples( iSample );
+    switchPositions = zeros( 1, p.resolutionBits );
 
     %% SAR control: trial switch, solve, compare, retain or revert
-    for iBit = 1 : resolutionBits
-      samplingResult.bottomPlateVolts( iBit ) = referenceHighVolts;
-      topPlateVolts = calculateTopPlateVoltage( samplingResult, capacitorArray );
-      samplingResult.topPlateVolts = topPlateVolts;
-      keepBit = compareVoltages( comparatorReferenceVolts, topPlateVolts );
-      if keepBit
-        bitWeight = bitshift( uint32( 1 ), resolutionBits - iBit );
-        outputCode = bitor( outputCode, bitWeight );
-      else
-        samplingResult.bottomPlateVolts( iBit ) = referenceLowVolts;
-        topPlateVolts = calculateTopPlateVoltage( samplingResult, capacitorArray );
-        samplingResult.topPlateVolts = topPlateVolts;
+    for iBit = 1 : p.resolutionBits
+      switchPositions( iBit ) = 1;
+      cdacOutputVolts = binaryCDAC( capacitorArray, p, inputVolts, switchPositions );
+      keepBit = p.comparatorReferenceShiftVolts >= cdacOutputVolts;
+      if ~keepBit
+        switchPositions( iBit ) = 0;
       end
     end
 
     %% Store the completed conversion before taking the next sample
-    outputCodes( iSample ) = double( outputCode );
+    binaryCodes( iSample, : ) = switchPositions;
   end
 end

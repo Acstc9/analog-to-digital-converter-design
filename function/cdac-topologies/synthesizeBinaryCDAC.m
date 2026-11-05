@@ -1,9 +1,5 @@
-function capacitorArray = synthesizeBinaryCDAC( simulationConfiguration )
+function capacitorWeights = synthesizeBinaryCDAC( p )
   %% Binary-weighted branches followed by one unit dummy
-  bitExponents = ( simulationConfiguration.resolutionBits - 1 ) : -1 : 0;
-  bitCapacitorWeights = 2 .^ bitExponents;
-  capacitorArray.unitCapacitorCounts = [ bitCapacitorWeights, 1 ];
-
-  %% Nominal branch capacitances
-  capacitorArray.nominalCapacitanceFemtofarads = simulationConfiguration.unitCapacitanceFemtofarads * capacitorArray.unitCapacitorCounts;
+  bitExponents = [ ( p.resolutionBits - 1 ) : -1 : 0, 0 ];
+  capacitorWeights = 2 .^ bitExponents;
 end
