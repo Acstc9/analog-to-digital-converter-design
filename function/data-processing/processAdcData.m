@@ -9,7 +9,6 @@ function spectrum = processAdcData( outputVolts, p )
   spectrum.singleSidedTransform( end ) = spectrum.singleSidedTransform( end ) / sqrt( 2 );
 
   %% Measure the coherent fundamental and residual
-  fundamentalDbfs = dbv( spectrum.singleSidedTransform( p.coherentCycleCount + 1 ) );
-  spectrum.metrics.sndrDb = calculateSNR( spectrum.singleSidedTransform, p.coherentCycleCount, 0 );
-  spectrum.metrics.enobBits = ( spectrum.metrics.sndrDb - 1.76 - fundamentalDbfs ) / 6.02;
+  spectrum.sndrDb = calculateSNR( spectrum.singleSidedTransform, p.coherentCycleCount, 0 );
+  spectrum.enobBits = ( spectrum.sndrDb - 1.76 ) / 6.02;
 end

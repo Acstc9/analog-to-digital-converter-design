@@ -9,3 +9,11 @@
 
 # Local working instructions
 /AGENTS.md
+
+# Local documentation
+/coding-style/matlab-coding-style.md
+/documentation/device-modeling-notes.md
+/documentation/converter-testing-notes.md
+/literature/README.md
+/design/README.md
+/measurements/README.md
