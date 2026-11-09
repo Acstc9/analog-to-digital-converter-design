@@ -1,6 +1,6 @@
-function [inputVoltageSamples, stimulus] = generateCoherentSineSamples( p )
+function [inputVoltageSamples, stimulus] = generateSineSamples( p )
   sampleIndices = ( 0 : p.sampleCount - 1 )';
-  cyclesPerSample = p.coherentCycleCount / p.sampleCount;
+  cyclesPerSample = p.inputCycleCount / p.sampleCount;
   stimulus.frequencyHz = cyclesPerSample * p.sampleRateHz;
   stimulus.peakAmplitudeVolts = p.vRef / 2;
   stimulus.offsetVolts = p.vCM;

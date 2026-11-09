@@ -1,14 +1,17 @@
 function spectrum = processAdcData( outputVolts, p )
-  %% Full-scale-sine-normalized FFT
-  centeredVolts = outputVolts - mean( outputVolts );
-  normalizedTransform = fft( centeredVolts ) / p.sampleCount * 4 / p.vRef;
+  %% Apply the periodic Hann window
+  windowWeights = ds_hann( p.sampleCount );
+  windowWeights = windowWeights.';
+  windowedVolts = outputVolts .* windowWeights;
 
-  %% Prepare one spectrum for metrics and plotting
-  spectrum.singleSidedTransform = normalizedTransform( 1 : p.sampleCount / 2 + 1 );
-  spectrum.singleSidedTransform( 1 ) = 0;
+  %% Full-scale-sine-normalized FFT
+  normalizedTransform = fft( windowedVolts ) / sum( windowWeights ) * 4 / p.vRef;
+
+  %% Exclude the first six bins and retain the one-sided spectrum
+  spectrum.singleSidedTransform = normalizedTransform( 7 : p.sampleCount / 2 + 1 );
   spectrum.singleSidedTransform( end ) = spectrum.singleSidedTransform( end ) / sqrt( 2 );
 
-  %% Measure the coherent fundamental and residual
-  spectrum.sndrDb = calculateSNR( spectrum.singleSidedTransform, p.coherentCycleCount, 0 );
+  %% Calculate SNDR and ENOB
+  spectrum.sndrDb = calculateSNR( spectrum.singleSidedTransform, round( p.inputCycleCount ) - 6, 25 );
   spectrum.enobBits = ( spectrum.sndrDb - 1.76 ) / 6.02;
 end

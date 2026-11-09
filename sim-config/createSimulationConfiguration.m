@@ -8,9 +8,9 @@ function p = createSimulationConfiguration()
   %% Sampling
   p.sampleRateHz = 1e6;
 
-  %% Coherent sine-wave stimulus
+  %% Sine-wave stimulus
   p.sampleCount = 2 ^ 10;
-  p.coherentCycleCount = 61;
+  p.inputCycleCount = 61.25;
 
   %% Ideal comparator-reference bias for the half-LSB convention
   nominalQuantizationStepVolts = p.vRef / 2 ^ p.resolutionBits;

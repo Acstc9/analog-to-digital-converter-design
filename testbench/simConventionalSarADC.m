@@ -1,6 +1,6 @@
-%% Configure the experiment and generate coherent sine samples
+%% Configure the experiment and generate sine samples
 p = createSimulationConfiguration();
-[inputVoltageSamples, stimulus] = generateCoherentSineSamples( p );
+[inputVoltageSamples, stimulus] = generateSineSamples( p );
 
 %% Build one capacitor array
 capacitorWeights = synthesizeBinaryCDAC( p );

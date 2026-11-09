@@ -1,6 +1,6 @@
 function plotFrequencySpectrum( spectrum, p )
-  frequencyKilohertz = ( 1 : p.sampleCount / 2 )' * p.sampleRateHz / p.sampleCount / 1e3;
-  binMagnitudeDbfs = dbv( spectrum.singleSidedTransform( 2 : end ) );
+  frequencyKilohertz = ( 6 : p.sampleCount / 2 )' * p.sampleRateHz / p.sampleCount / 1e3;
+  binMagnitudeDbfs = dbv( spectrum.singleSidedTransform );
 
   figure( 'Color', 'w', 'Position', [100, 100, 1000, 600] );
   axes( 'Position', [0.08, 0.15, 0.63, 0.75] );
