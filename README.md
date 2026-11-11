@@ -17,7 +17,7 @@ The testbench builds one capacitor array, converts and stores one sample at a ti
 - [cbwSarADC.m](models/cbwSarADC.m): converts one input voltage through successive bit trials and returns one MSB-first binary code.
 - [binaryCDAC.m](function/binaryCDAC.m): calculates the CDAC output voltage from capacitor values, the input sample and switch positions.
 - [idealDAC.m](function/data-processing/idealDAC.m): decodes output bits into nominal voltages for analysis.
-- [processAdcData.m](function/data-processing/processAdcData.m): returns the shared single-sided spectrum, SNDR and ENOB.
+- [processAdcData.m](function/data-processing/processAdcData.m): returns the complex single-sided spectrum, its magnitude in dBFS, SNDR and ENOB.
 - [plotFrequencySpectrum.m](function/plotting/plotFrequencySpectrum.m): displays magnitude in dBFS and performance metrics.
 
 ## Default test and results
@@ -31,7 +31,7 @@ The testbench builds one capacitor array, converts and stores one sample at a ti
 
 The FFT is normalized by the Hann window sum and referenced to a full-scale sine. Analysis and plotting exclude the first six bins, including DC. SNDR assigns the nearest tone bin and 25 bins on each side to signal; the remaining retained bins contain noise and distortion. ENOB is `(SNDR - 1.76) / 6.02`, without amplitude correction.
 
-Verified on 2026-11-09 with a complete MATLAB testbench run: all 1024 binary output rows were populated, SNDR matched an independent power calculation within 1e-10 dB, and all 507 plotted values and frequencies matched the processed spectrum. The figure is manually exported; normal runs do not save it.
+The spectrum displays individual bins down to -120 dBFS, with SNDR and ENOB inside the axes. A full MATLAB run on 2026-11-11 reproduced the metrics above. The retained FFT coefficients agreed with the Appendix A amplitude normalization within 2e-16 after matching the input scale and Nyquist weighting. At 1024 samples, a pure sine with 61 cycles had 3 bins above -60 dBFS; at 61.25 cycles it had 12, matching the ADC output at that threshold. The figure is manually exported.
 
 These are finite-record estimates for the selected ideal test. Noise inside the signal region is excluded from the residual, while residual tone leakage can enter it; neither effect is corrected. Other tone settings must keep the 51-bin signal region inside the retained band and away from Nyquist. No measured hardware performance is implied.
 

@@ -5,11 +5,14 @@ function spectrum = processAdcData( outputVolts, p )
   windowedVolts = outputVolts .* windowWeights;
 
   %% Full-scale-sine-normalized FFT
-  normalizedTransform = fft( windowedVolts ) / sum( windowWeights ) * 4 / p.vRef;
+  windowedTransform = fft( windowedVolts );
+  spectrumVolts = windowedTransform / ( sum( windowWeights ) / 2 );
+  fullScaleRelativeSpectrum = spectrumVolts / ( p.vRef / 2 );
 
   %% Exclude the first six bins and retain the one-sided spectrum
-  spectrum.singleSidedTransform = normalizedTransform( 7 : p.sampleCount / 2 + 1 );
+  spectrum.singleSidedTransform = fullScaleRelativeSpectrum( 7 : p.sampleCount / 2 + 1 );
   spectrum.singleSidedTransform( end ) = spectrum.singleSidedTransform( end ) / sqrt( 2 );
+  spectrum.binMagnitudeDbfs = dbv( spectrum.singleSidedTransform );
 
   %% Calculate SNDR and ENOB
   spectrum.sndrDb = calculateSNR( spectrum.singleSidedTransform, round( p.inputCycleCount ) - 6, 25 );
