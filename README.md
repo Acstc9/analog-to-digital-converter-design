@@ -26,14 +26,14 @@ The testbench builds one capacitor array, converts and stores one sample at a ti
 
 | Metric | Result |
 |---|---:|
-| SNDR | 74.039309 dB |
-| ENOB | 12.006530 bits |
+| SNDR | 24.985678 dB |
+| ENOB | 3.858086 bits |
 
-The FFT is normalized by the Hann window sum and referenced to a full-scale sine. Analysis and plotting exclude the first six bins, including DC. SNDR assigns the nearest tone bin and 25 bins on each side to signal; the remaining retained bins contain noise and distortion. ENOB is `(SNDR - 1.76) / 6.02`, without amplitude correction.
+The FFT is normalized by the Hann window sum and referenced to a full-scale sine. Analysis and plotting exclude bins 0 and 1, which contain the constant offset after periodic Hann weighting. SNDR counts the nearest tone bin and its two immediate neighbors as signal for both coherent and noncoherent sampling. All other retained bins contribute to the residual, including tone leakage. ENOB is `(SNDR - 1.76) / 6.02`, without amplitude correction.
 
-The spectrum displays individual bins down to -120 dBFS, with SNDR and ENOB inside the axes. A full MATLAB run on 2026-11-11 reproduced the metrics above. The retained FFT coefficients agreed with the Appendix A amplitude normalization within 2e-16 after matching the input scale and Nyquist weighting. At 1024 samples, a pure sine with 61 cycles had 3 bins above -60 dBFS; at 61.25 cycles it had 12, matching the ADC output at that threshold. The figure is manually exported.
+The spectrum displays individual bins down to -120 dBFS, with SNDR and ENOB inside the axes. A full MATLAB run on 2026-11-12 reproduced SNDR by summing the powers in bins 60 through 62 and comparing them with the other retained bins. Applying the same analysis directly to the unquantized input yielded 24.984404 dB. Tone leakage dominates this noncoherent estimate. The retained FFT coefficients agreed with the Appendix A amplitude normalization within 2e-16 after matching the input scale and Nyquist weighting. At 1024 samples, a pure sine with 61 cycles had 3 bins above -60 dBFS; at 61.25 cycles it had 12, matching the ADC output at that threshold. The figure is manually exported.
 
-These are finite-record estimates for the selected ideal test. Noise inside the signal region is excluded from the residual, while residual tone leakage can enter it; neither effect is corrected. Other tone settings must keep the 51-bin signal region inside the retained band and away from Nyquist. No measured hardware performance is implied.
+These are finite-record estimates for the selected ideal test. Noise inside the signal region is excluded from the residual, while residual tone leakage can enter it; neither effect is corrected. Other tone settings must keep the three-bin signal region inside the retained band and away from Nyquist. No measured hardware performance is implied.
 
 ## References
 
