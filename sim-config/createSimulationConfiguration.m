@@ -1,6 +1,9 @@
 function p = createSimulationConfiguration()
   %% Converter settings
-  p.resolutionBits = 12;
+  p.cdacType = "binary";
+  p.msbBitCount = 6;
+  p.lsbBitCount = 6;
+  p.resolutionBits = p.msbBitCount + p.lsbBitCount;
   p.vRef = 1;
   p.vCM = p.vRef / 2;
   p.unitCapacitanceFemtofarads = 10;

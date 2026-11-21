@@ -2,7 +2,7 @@ function plotFrequencySpectrum( spectrum, p )
   frequencyKilohertz = ( 2 : p.sampleCount / 2 )' * p.sampleRateHz / p.sampleCount / 1e3;
 
   figure( 'Color', 'w', 'Position', [100, 100, 1000, 600] );
-  stem( frequencyKilohertz, spectrum.binMagnitudeDbfs, 'Color', [0, 0.447, 0.741], 'Marker', 'none', 'LineWidth', 1, 'BaseValue', -120 );
+  plot( frequencyKilohertz, spectrum.binMagnitudeDbfs, 'b-', 'LineWidth', 2.5 );
   xlabel( 'Frequency (kHz)' );
   ylabel( 'Magnitude (dBFS)' );
   title( 'ADC Frequency Spectrum' );

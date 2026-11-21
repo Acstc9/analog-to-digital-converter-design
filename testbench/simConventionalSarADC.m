@@ -3,9 +3,19 @@ p = createSimulationConfiguration();
 [inputVoltageSamples, stimulus] = generateSineSamples( p );
 
 %% Build one capacitor array
-capacitorWeights = synthesizeBinaryCDAC( p );
-capacitorArray.nominalCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights;
-capacitorArray.totalCapacitanceFemtofarads = sum( capacitorArray.nominalCapacitanceFemtofarads );
+capacitorWeights = synthesizeCDAC( p );
+capacitorArray = struct();
+switch p.cdacType
+  case "binary"
+    capacitorArray.nominalCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights;
+    capacitorArray.totalCapacitanceFemtofarads = sum( capacitorArray.nominalCapacitanceFemtofarads );
+  case "bridge"
+    capacitorArray.msbCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights.msb;
+    capacitorArray.lsbCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights.lsb;
+    capacitorArray.bridgeCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights.bridge;
+    capacitorArray.msbTotalCapacitanceFemtofarads = sum( capacitorArray.msbCapacitanceFemtofarads );
+    capacitorArray.lsbTotalCapacitanceFemtofarads = sum( capacitorArray.lsbCapacitanceFemtofarads );
+end
 
 %% Convert and store one sample at a time
 binaryCodes = nan( p.sampleCount, p.resolutionBits );
