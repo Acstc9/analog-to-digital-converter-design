@@ -30,9 +30,9 @@ The testbench builds one capacitor array, converts and stores one sample at a ti
 | SNDR | 24.985678 dB |
 | ENOB | 3.858086 bits |
 
-Total resolution is derived from `msbBitCount + lsbBitCount`, currently 6 + 6. The default CDAC type is `"binary"`. The testbench builds the selected array once, and cbwSarADC uses the matching voltage calculation for each bit trial.
+Total resolution is derived from `msbBitCount + lsbBitCount`, currently 6 + 6. The default CDAC type is `"bridge"`. The testbench builds the selected array once, and cbwSarADC uses the matching voltage calculation for each bit trial.
 
-Full MATLAB runs on 2026-11-21 verified the default binary model and bridge splits of 6+6, 7+5 and 5+7. All produced identical output codes, decoded voltages and spectra for the default sine. Thirty endpoint and near-transition checks also passed. The bridge voltage formula separately agreed with an independent two-node solution within 1.12e-16 V, including perturbed capacitances. These checks do not add mismatch or other nonideal effects to the model.
+Full MATLAB runs on 2026-11-21 verified the binary model and bridge splits of 6+6, 7+5 and 5+7. All produced identical output codes, decoded voltages and spectra for the default sine. Thirty endpoint and near-transition checks also passed. The bridge voltage formula separately agreed with an independent two-node solution within 1.12e-16 V, including perturbed capacitances. These checks do not add mismatch or other nonideal effects to the model.
 
 The FFT is normalized by the Hann window sum and referenced to a full-scale sine. Analysis and plotting exclude bins 0 and 1, which contain the constant offset after periodic Hann weighting. SNDR counts the nearest tone bin and its two immediate neighbors as signal for both coherent and noncoherent sampling. All other retained bins contribute to the residual, including tone leakage. ENOB is `(SNDR - 1.76) / 6.02`, without amplitude correction.
 

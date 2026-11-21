@@ -1,6 +1,6 @@
 function p = createSimulationConfiguration()
   %% Converter settings
-  p.cdacType = "binary";
+  p.cdacType = "bridge";
   p.msbBitCount = 6;
   p.lsbBitCount = 6;
   p.resolutionBits = p.msbBitCount + p.lsbBitCount;
