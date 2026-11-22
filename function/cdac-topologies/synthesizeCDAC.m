@@ -1,23 +1,31 @@
-function capacitorWeights = synthesizeCDAC( p )
+function capacitorArray = synthesizeCDAC( p )
   switch p.cdacType
     case "binary"
       %% Binary-weighted branches followed by one unit dummy
       bitExponents = [ ( p.resolutionBits - 1 ) : -1 : 0, 0 ];
       capacitorWeights = 2 .^ bitExponents;
       capacitorWeights = normrnd( capacitorWeights, p.mismatchStd .* sqrt( capacitorWeights ) );
+      capacitorArray.capacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights;
+      capacitorArray.totalCapacitanceFemtofarads = sum( capacitorArray.capacitanceFemtofarads );
     case "bridge"
       %% MSB array
       msbExponents = ( p.msbBitCount - 1 ) : -1 : 0;
-      capacitorWeights.msb = 2 .^ msbExponents;
-      capacitorWeights.msb = normrnd( capacitorWeights.msb, p.mismatchStd .* sqrt( capacitorWeights.msb ) );
+      msbWeights = 2 .^ msbExponents;
+      msbWeights = normrnd( msbWeights, p.mismatchStd .* sqrt( msbWeights ) );
+      capacitorArray.msbCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * msbWeights;
 
       %% LSB array followed by one unit dummy
       lsbExponents = [ ( p.lsbBitCount - 1 ) : -1 : 0, 0 ];
-      capacitorWeights.lsb = 2 .^ lsbExponents;
-      capacitorWeights.lsb = normrnd( capacitorWeights.lsb, p.mismatchStd .* sqrt( capacitorWeights.lsb ) );
+      lsbWeights = 2 .^ lsbExponents;
+      lsbWeights = normrnd( lsbWeights, p.mismatchStd .* sqrt( lsbWeights ) );
+      capacitorArray.lsbCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * lsbWeights;
 
       %% Bridge capacitor
-      capacitorWeights.bridge = 2 ^ p.lsbBitCount / ( 2 ^ p.lsbBitCount - 1 );
-      capacitorWeights.bridge = normrnd( capacitorWeights.bridge, p.mismatchStd * sqrt( capacitorWeights.bridge ) );
+      bridgeWeight = 2 ^ p.lsbBitCount / ( 2 ^ p.lsbBitCount - 1 );
+      bridgeWeight = normrnd( bridgeWeight, p.mismatchStd * sqrt( bridgeWeight ) );
+      capacitorArray.bridgeCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * bridgeWeight;
+
+      capacitorArray.msbTotalCapacitanceFemtofarads = sum( capacitorArray.msbCapacitanceFemtofarads );
+      capacitorArray.lsbTotalCapacitanceFemtofarads = sum( capacitorArray.lsbCapacitanceFemtofarads );
   end
 end

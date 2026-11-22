@@ -1,13 +1,13 @@
-function p = createSimulationConfiguration()
+function p = createSimulationConfiguration( cdacType, mismatchStd )
   %% Converter settings
-  p.cdacType = "bridge";
+  p.cdacType = cdacType;
   p.msbBitCount = 6;
   p.lsbBitCount = 6;
   p.resolutionBits = p.msbBitCount + p.lsbBitCount;
   p.vRef = 1;
   p.vCM = p.vRef / 2;
   p.unitCapacitanceFemtofarads = 10;
-  p.mismatchStd = 0.05;  % Relative standard deviation of a unit capacitor
+  p.mismatchStd = mismatchStd;  % Relative standard deviation of a unit capacitor
 
   %% Sampling
   p.sampleRateHz = 1e6;
