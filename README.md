@@ -1,4 +1,4 @@
-# Analog-to-Digital Converter Design
+# SAR ADC MATLAB Model
 
 A single-ended SAR ADC model in MATLAB, with a selectable binary-weighted or bridge charge-redistribution CDAC, static capacitor mismatch and periodic-Hann FFT analysis. The array includes a unit dummy capacitor and an explicit half-LSB comparator-reference bias. Thermal noise, settling and transistor behavior are not modeled.
 
@@ -40,7 +40,7 @@ The FFT uses Hann window-sum normalization and a full-scale-sine reference. Anal
 
 The coherent default avoids the off-bin leakage that dominated the former 61.25-cycle estimate. Changing back to a noncoherent tone can put signal leakage in the residual. Neither residual leakage nor noise hidden under the signal is corrected. Keep other tones' three-bin regions inside the retained band and away from Nyquist. These are simulation estimates, not hardware measurements.
 
-The spectrum uses a solid blue 2.5 pt line, a linear kHz axis and a -120 dBFS lower limit, with metrics inside the axes. The retained PNG is the earlier manually exported zero-mismatch result; it is not updated by running the model.
+The spectrum uses a solid blue 2.5 pt line, a linear kHz axis and a -120 dBFS lower limit, with metrics inside the axes. The frequency spectrum and binary CDAC mismatch curve in `drawing` are manually exported. The spectrum PNG shows the earlier zero-mismatch run.
 
 ## References
 
