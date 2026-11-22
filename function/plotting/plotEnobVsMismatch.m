@@ -1,12 +1,11 @@
 function plotEnobVsMismatch()
-  mismatchValues = 0.0001 : 0.0001 : 0.1;
-
   %% Random capacitor mismatch
+  mismatchStdValues = [ 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1 ];
   arrayCount = 100;
-  enobBits = nan( arrayCount, numel( mismatchValues ) );
+  enobBits = nan( arrayCount, numel( mismatchStdValues ) );
 
-  for iLevel = 1 : numel( mismatchValues )
-    p = createSimulationConfiguration( "binary", mismatchValues( iLevel ) );
+  for iLevel = 1 : numel( mismatchStdValues )
+    p = createSimulationConfiguration( "binary", mismatchStdValues( iLevel ) );
     inputVoltageSamples = generateSineSamples( p );
     for iArray = 1 : arrayCount
       capacitorArray = synthesizeCDAC( p );
@@ -16,6 +15,7 @@ function plotEnobVsMismatch()
   medianEnobBits = median( enobBits, 1 );
 
   %% Worst-case MSB weight
+  mismatchValues = 0.0001 : 0.0001 : 0.1;
   p = createSimulationConfiguration( "binary", 0 );
   nominalArray = synthesizeCDAC( p );
   inputVoltageSamples = generateSineSamples( p );
@@ -31,7 +31,7 @@ function plotEnobVsMismatch()
 
   %% Plot both ENOB curves
   figure( 'Color', 'w', 'Position', [ 100, 100, 1000, 620 ] );
-  semilogx( mismatchValues, medianEnobBits, 'b-', mismatchValues, msbHighEnobBits, 'k--', 'LineWidth', 2.5 );
+  semilogx( mismatchStdValues, medianEnobBits, 'b-', mismatchValues, msbHighEnobBits, 'k--', 'LineWidth', 2.5 );
   xlabel( 'Relative unit-capacitor mismatch' );
   ylabel( 'ENOB (bits)' );
   xlim( [ mismatchValues( 1 ), mismatchValues( end ) ] );
