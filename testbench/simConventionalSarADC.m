@@ -7,8 +7,8 @@ capacitorWeights = synthesizeCDAC( p );
 capacitorArray = struct();
 switch p.cdacType
   case "binary"
-    capacitorArray.nominalCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights;
-    capacitorArray.totalCapacitanceFemtofarads = sum( capacitorArray.nominalCapacitanceFemtofarads );
+    capacitorArray.capacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights;
+    capacitorArray.totalCapacitanceFemtofarads = sum( capacitorArray.capacitanceFemtofarads );
   case "bridge"
     capacitorArray.msbCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights.msb;
     capacitorArray.lsbCapacitanceFemtofarads = p.unitCapacitanceFemtofarads * capacitorWeights.lsb;

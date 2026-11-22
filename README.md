@@ -1,21 +1,21 @@
 # Analog-to-Digital Converter Design
 
-An ideal single-ended SAR ADC model in MATLAB, with a selectable binary-weighted or bridge charge-redistribution CDAC, successive bit decisions and noncoherent sine-wave FFT analysis with a periodic Hann window. The array includes a unit dummy capacitor and an explicit half-LSB comparator-reference bias. Nonideal effects are not modeled.
+A single-ended SAR ADC model in MATLAB, with a selectable binary-weighted or bridge charge-redistribution CDAC, static capacitor mismatch and periodic-Hann FFT analysis. The array includes a unit dummy capacitor and an explicit half-LSB comparator-reference bias. Thermal noise, settling and transistor behavior are not modeled.
 
 ## Run
 
-Requires MATLAB, Communications Toolbox and Richard Schreier's Delta Sigma Toolbox. Verified with MATLAB R2026a.
+Requires MATLAB, Communications Toolbox, Statistics and Machine Learning Toolbox (`normrnd`), and Richard Schreier's Delta Sigma Toolbox. Verified with MATLAB R2026a.
 
-1. Add `sim-config`, `models`, `function` and `testbench`, including their subfolders, to the MATLAB path. Run `savepath` once to retain the setup.
+1. Add `sim-config`, `models`, `function` and `testbench`, including their subfolders, to the MATLAB path.
 2. Edit [createSimulationConfiguration.m](sim-config/createSimulationConfiguration.m) to set converter and test parameters. Select `p.cdacType = "binary"` or `"bridge"`; the bridge split uses `p.msbBitCount` and `p.lsbBitCount`.
 3. Open [simConventionalSarADC.m](testbench/simConventionalSarADC.m) and click **Run**. The script displays the spectrum, SNDR and ENOB and keeps the output bits and analysis results in the workspace.
 
-The testbench builds one capacitor array, converts and stores one sample at a time, then analyzes the complete record. Normal runs do not save files automatically.
+The testbench draws one capacitor array per run, holds it fixed throughout conversion, then analyzes the complete record. Normal runs do not save files automatically or reset the random generator.
 
 ## Main functions
 
 - [cbwSarADC.m](models/cbwSarADC.m): converts one input voltage through successive bit trials and returns one MSB-first binary code.
-- [synthesizeCDAC.m](function/cdac-topologies/synthesizeCDAC.m): generates unit-capacitance weights for the selected topology.
+- [synthesizeCDAC.m](function/cdac-topologies/synthesizeCDAC.m): generates capacitor weights with independent Gaussian mismatch for the selected topology.
 - [binaryCDAC.m](function/binaryCDAC.m) and [bridgeCDAC.m](function/bridgeCDAC.m): calculate the selected CDAC output voltage from capacitor values, the input sample and switch positions.
 - [idealDAC.m](function/data-processing/idealDAC.m): decodes output bits into nominal voltages for analysis.
 - [processAdcData.m](function/data-processing/processAdcData.m): returns the complex single-sided spectrum, its magnitude in dBFS, SNDR and ENOB.
@@ -23,22 +23,26 @@ The testbench builds one capacitor array, converts and stores one sample at a ti
 
 ## Default test and results
 
-12-bit resolution, 1 V reference, 1 MS/s, 1024 samples, 61.25 sine cycles and 0 dBFS input. The input frequency is 59.814453125 kHz.
+The default is a 6+6 bridge CDAC: 12-bit resolution, 1 V reference, 1 MS/s, 1024 samples, 61 coherent sine cycles and 0 dBFS input. The input frequency is 59.5703125 kHz. The periodic Hann window remains enabled.
 
-| Metric | Result |
-|---|---:|
-| SNDR | 24.985678 dB |
-| ENOB | 3.858086 bits |
+The unit capacitance is 10 fF. `p.mismatchStd = 0.05` means 5% relative standard deviation for a unit capacitor. `normrnd` draws each weight with mean `w` and standard deviation `0.05 * sqrt(w)` before scaling to fF, including the dummy and bridge. Extending this area-scaling model to the fractional bridge weight is an assumption; its nominal value is not tuned to compensate for array errors. Set `mismatchStd = 0` for ideal capacitances.
 
-Total resolution is derived from `msbBitCount + lsbBitCount`, currently 6 + 6. The default CDAC type is `"bridge"`. The testbench builds the selected array once, and cbwSarADC uses the matching voltage calculation for each bit trial.
+Full MATLAB verification on 2026-11-22 gave these coherent-Hann results. The 5% row uses seed 20261122 in a temporary verification script; normal-run results vary.
 
-Full MATLAB runs on 2026-11-21 verified the binary model and bridge splits of 6+6, 7+5 and 5+7. All produced identical output codes, decoded voltages and spectra for the default sine. Thirty endpoint and near-transition checks also passed. The bridge voltage formula separately agreed with an independent two-node solution within 1.12e-16 V, including perturbed capacitances. These checks do not add mismatch or other nonideal effects to the model.
+| Unit mismatch standard deviation | SNDR (dB) | ENOB (bits) |
+|---|---:|---:|
+| 0% | 73.725225 | 11.954356 |
+| 5% (default) | 45.540673 | 7.272537 |
 
-The FFT is normalized by the Hann window sum and referenced to a full-scale sine. Analysis and plotting exclude bins 0 and 1, which contain the constant offset after periodic Hann weighting. SNDR counts the nearest tone bin and its two immediate neighbors as signal for both coherent and noncoherent sampling. All other retained bins contribute to the residual, including tone leakage. ENOB is `(SNDR - 1.76) / 6.02`, without amplitude correction.
+Zero mismatch exactly reproduced the saved 61.25-cycle baseline codes, voltages and FFT fields for binary and bridge splits 6+6, 7+5 and 5+7. Independent node solutions reproduced all coherent mismatch-run codes, with bridge voltage error below 2.78e-16 V. Across 20000 arrays per topology, capacitor standard deviations matched predictions within 0.93%. Code Analyzer reported no issues.
 
-The spectrum connects individual FFT bins with a solid blue 2.5 pt line and displays SNDR and ENOB inside the axes. The lower display limit is -120 dBFS. A full MATLAB run on 2026-11-12 reproduced SNDR by summing the powers in bins 60 through 62 and comparing them with the other retained bins. Applying the same analysis directly to the unquantized input yielded 24.984404 dB. Tone leakage dominates this noncoherent estimate. The retained FFT coefficients agreed with the Appendix A amplitude normalization within 2e-16 after matching the input scale and Nyquist weighting. At 1024 samples, a pure sine with 61 cycles had 3 bins above -60 dBFS; at 61.25 cycles it had 12, matching the ADC output at that threshold. The figure is manually exported.
+A temporary 20-device comparison at unit mismatch levels 0.1%, 0.5%, 1% and 5% gave median ENOB values of 11.81, 10.64, 9.68 and 7.42 bits. This supports the expected trend for this model; it does not establish process matching limits or reproduce a published statistical curve. The 5% setting makes mismatch visible and is large for retaining near-12-bit performance in this uncalibrated 6+6 array.
 
-These are finite-record estimates for the selected ideal test. Noise inside the signal region is excluded from the residual, while residual tone leakage can enter it; neither effect is corrected. Other tone settings must keep the three-bin signal region inside the retained band and away from Nyquist. No measured hardware performance is implied.
+The FFT uses Hann window-sum normalization and a full-scale-sine reference. Analysis excludes the windowed-DC bins 0 and 1 and weights Nyquist by 1/sqrt(2). SNDR counts the nearest tone bin and its two neighbors as signal, and all remaining bins as residual. ENOB is `(SNDR - 1.76) / 6.02`.
+
+The coherent default avoids the off-bin leakage that dominated the former 61.25-cycle estimate. Changing back to a noncoherent tone can put signal leakage in the residual. Neither residual leakage nor noise hidden under the signal is corrected. Keep other tones' three-bin regions inside the retained band and away from Nyquist. These are simulation estimates, not hardware measurements.
+
+The spectrum uses a solid blue 2.5 pt line, a linear kHz axis and a -120 dBFS lower limit, with metrics inside the axes. The retained PNG is the earlier manually exported zero-mismatch result; it is not updated by running the model.
 
 ## References
 
